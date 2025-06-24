@@ -1,4 +1,4 @@
-name: 'qiniu-upload'
+name: 'qiniu-upload-qridoki'
 description: 'github action for uploading files to qiniu'
 author: 'QriDoki'
 inputs:
