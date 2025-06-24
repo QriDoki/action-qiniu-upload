@@ -32,7 +32,7 @@ jobs:
 
         # The local directory (or file) you want to upload to bucket.
         # Default: './'
-        source_dir: 'dist'
+        source_dir: 'lib'
 
         # The directory inside of the bucket you want to upload to, namely key prefix prepended to dest file key.
         # Default: '/'

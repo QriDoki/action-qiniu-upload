@@ -3,13 +3,13 @@
   "version": "0.0.3",
   "private": true,
   "description": "github action for uploading files to qiniu",
-  "main": "dist/main.js",
+  "main": "lib/main.js",
   "scripts": {
     "build": "tsc",
     "lint": "eslint src/**/*.ts",
-    "pack": "ncc build",
+    "pack": "npm run build; ncc build",
     "test": "jest --passWithNoTests",
-    "all": "npm run build && npm run lint && npm run pack && npm test",
+    "all": "npm run lint && npm run pack && npm test",
     "dev": "ts-node src/main.ts"
   },
   "repository": {
@@ -25,11 +25,11 @@
   "license": "MIT",
   "dependencies": {
     "@actions/core": "^1.2.0",
+    "dotenv": "^16.5.0",
     "glob": "^7.1.6",
     "p-all": "^2.1.0",
     "p-retry": "^4.2.0",
-    "qiniu": "^7.14.0",
-    "dotenv": "^16.5.0"
+    "qiniu": "^7.14.0"
   },
   "devDependencies": {
     "@types/glob": "^7.1.3",
@@ -37,7 +37,7 @@
     "@types/node": "^13.1.0",
     "@typescript-eslint/eslint-plugin": "^2.13.0",
     "@typescript-eslint/parser": "^2.13.0",
-    "@zeit/ncc": "^0.20.5",
+    "@vercel/ncc": "^0.38.3",
     "eslint": "^6.1.0",
     "eslint-config-airbnb": "^18.0.1",
     "eslint-plugin-import": "^2.19.1",
