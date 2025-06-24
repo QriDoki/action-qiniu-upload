@@ -8,19 +8,64 @@ function normalizePath(input: string): string {
   return input.replace(/^\//, '');
 }
 
-export function upload(
+function putFile(
+  // eslint-disable-next-line @typescript-eslint/camelcase
+  uploader: qiniu.form_up.FormUploader,
+  token: string,
+  key: string,
+  file: string,
+  mac: qiniu.auth.digest.Mac,
+  bucket: string,
+  onProgress: (srcFile: string, destFile: string) => void,
+  canOverwrite = false,
+): Promise<{ file: string, to: string } | null> {
+  const putExtra = new qiniu.form_up.PutExtra();
+  // 使用Promise包装回调式API
+  return new Promise<{ file: string, to: string } | null>((resolve, reject) => {
+    uploader.putFile(token, key, file, putExtra, (err, body, info) => {
+      if (err) {
+        return reject(new Error(`Upload failed: ${file}`));
+      }
+
+      if (info.statusCode === 200) {
+        onProgress(file, key);
+        return resolve({
+          file,
+          to: key,
+        });
+      }
+
+      if (info.statusCode === 614 && canOverwrite) {
+        const options = {
+          scope: `${bucket}:${key}`,
+        };
+        const putPolicy = new qiniu.rs.PutPolicy(options);
+        const overwriteToken = putPolicy.uploadToken(mac);
+        return putFile(uploader, overwriteToken, key, file, mac, bucket, onProgress, false);
+      }
+
+      reject(new Error(`Upload failed: ${file}`));
+    });
+  });
+}
+
+export async function upload(
+  bucket: string,
+  mac: qiniu.auth.digest.Mac,
   token: string,
   srcDir: string,
   destDir: string,
   ignoreSourceMap: boolean,
+  overwrite: boolean,
   onProgress: (srcFile: string, destFile: string) => void,
   onComplete: () => void,
   onFail: (errorInfo: any) => void,
-): void {
+): Promise<void> {
   const baseDir = path.resolve(process.cwd(), srcDir);
   const files = glob.sync(`${baseDir}/**/*`, { nodir: true });
 
   const config = new qiniu.conf.Config();
+
   const uploader = new qiniu.form_up.FormUploader(config);
 
   const tasks = files.map((file) => {
@@ -29,24 +74,21 @@ export function upload(
 
     if (ignoreSourceMap && file.endsWith('.map')) return null;
 
-    const task = (): Promise<any> => new Promise((resolve, reject) => {
-      const putExtra = new qiniu.form_up.PutExtra();
-      uploader.putFile(token, key, file, putExtra, (err, body, info) => {
-        if (err) return reject(new Error(`Upload failed: ${file}`));
-
-        if (info.statusCode === 200) {
-          onProgress(file, key);
-          return resolve({ file, to: key });
-        }
-
-        reject(new Error(`Upload failed: ${file}`));
+    const task = async (): Promise<any> => {
+      // 使用Promise包装回调式API
+      const result = new Promise<{ file: string, to: string } | null>(() => {
+        putFile(uploader, token, key, file, mac, bucket, onProgress, overwrite);
       });
-    });
+      return result;
+    };
 
     return () => pRetry(task, { retries: 3 });
-  }).filter((item) => !!item) as (() => Promise<any>)[];
+  })
+    .filter((item) => !!item) as (() => Promise<any>)[];
 
   pAll(tasks, { concurrency: 5 })
     .then(onComplete)
     .catch(onFail);
 }
+
+

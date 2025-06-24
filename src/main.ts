@@ -1,6 +1,9 @@
 import * as core from '@actions/core';
+import * as dotenv from 'dotenv';
 import { genToken } from './token';
 import { upload } from './upload';
+
+dotenv.config();
 
 async function run(): Promise<void> {
   try {
@@ -10,14 +13,17 @@ async function run(): Promise<void> {
     const sourceDir = core.getInput('source_dir');
     const destDir = core.getInput('dest_dir');
     const ignoreSourceMap = core.getInput('ignore_source_map') === 'true';
+    const overwrite = core.getInput('overwrite') === 'true';
 
-    const token = genToken(bucket, ak, sk);
-
-    upload(
+    const { mac, token } = genToken(bucket, ak, sk);
+    await upload(
+      bucket,
+      mac,
       token,
       sourceDir,
       destDir,
       ignoreSourceMap,
+      overwrite,
       (file, key) => core.info(`Success: ${file} => [${bucket}]: ${key}`),
       () => core.info('Done!'),
       (error) => core.setFailed(error.message),
