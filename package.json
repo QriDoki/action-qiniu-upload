@@ -2,7 +2,6 @@
   "name": "action-qiniu-upload",
   "version": "0.0.4",
   "private": true,
-  "type": "module",
   "description": "github action for uploading files to qiniu",
   "main": "lib/main.js",
   "scripts": {
