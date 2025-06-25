@@ -41,10 +41,12 @@ function putFile(
         };
         const putPolicy = new qiniu.rs.PutPolicy(options);
         const overwriteToken = putPolicy.uploadToken(mac);
-        return putFile(uploader, overwriteToken, key, file, mac, bucket, onProgress, false);
+        putFile(uploader, overwriteToken, key, file, mac, bucket, onProgress, false)
+          .then(resolve)
+          .catch(reject);
+      } else {
+        reject(new Error(`Upload failed: ${file}`));
       }
-
-      reject(new Error(`Upload failed: ${file}`));
     });
   });
 }
@@ -76,19 +78,17 @@ export async function upload(
 
     const task = async (): Promise<any> => {
       // 使用Promise包装回调式API
-      const result = new Promise<{ file: string, to: string } | null>(() => {
-        putFile(uploader, token, key, file, mac, bucket, onProgress, overwrite);
+      const result = new Promise<{ file: string, to: string } | null>((resolve, reject) => {
+        putFile(uploader, token, key, file, mac, bucket, onProgress, overwrite)
+          .then(resolve).catch(reject);
       });
       return result;
     };
 
-    return () => pRetry(task, { retries: 3 });
+    return () => pRetry(task, { retries: 5 });
   })
     .filter((item) => !!item) as (() => Promise<any>)[];
 
-  pAll(tasks, { concurrency: 5 })
-    .then(onComplete)
-    .catch(onFail);
+  const pAllRes = await pAll(tasks, { concurrency: 5, stopOnError: false });
+  console.log({ pAllRes });
 }
-
-

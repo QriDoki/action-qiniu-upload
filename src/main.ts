@@ -33,4 +33,13 @@ async function run(): Promise<void> {
   }
 }
 
-run();
+run()
+  .then(() => {
+    console.log('Run function completed successfully.');
+    // 可以在这里执行一些清理或退出操作
+    process.exit(0); // 成功退出
+  })
+  .catch((error) => {
+    console.error('Run function failed:', error.message);
+    process.exit(1); // 失败退出
+  });

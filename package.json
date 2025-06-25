@@ -1,7 +1,8 @@
 {
   "name": "action-qiniu-upload",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "private": true,
+  "type": "module",
   "description": "github action for uploading files to qiniu",
   "main": "lib/main.js",
   "scripts": {
@@ -10,25 +11,25 @@
     "pack": "npm run build; ncc build",
     "test": "jest --passWithNoTests",
     "all": "npm run lint && npm run pack && npm test",
-    "dev": "ts-node src/main.ts"
+    "dev": "npx tsx src/main.ts"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/hujiulong/action-qiniu-upload.git"
+    "url": "git+https://github.com/qridoki/action-qiniu-upload.git"
   },
   "keywords": [
     "actions",
     "node",
     "setup"
   ],
-  "author": "Jiulong Hu <me@hujiulong.com>",
+  "author": "Qri <qri@qri.moe>",
   "license": "MIT",
   "dependencies": {
     "@actions/core": "^1.2.0",
     "dotenv": "^16.5.0",
     "glob": "^7.1.6",
-    "p-all": "^2.1.0",
-    "p-retry": "^4.2.0",
+    "p-all": "^5.0.0",
+    "p-retry": "^6.2.1",
     "qiniu": "^7.14.0"
   },
   "devDependencies": {
@@ -49,6 +50,7 @@
     "jest-circus": "^24.9.0",
     "ts-jest": "^24.2.0",
     "ts-node": "^10.9.2",
+    "tsx": "^4.20.3",
     "typescript": "^3.7.4"
   }
 }
